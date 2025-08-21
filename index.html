@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>DPR IAN Dance Animation</title>
+<style>
+    canvas { 
+        border: 1px solid #000; 
+        display: block; 
+        margin: 20px auto; 
+        background: #000; 
+    }
+    div { text-align: center; margin-top: 10px; }
+    button { margin: 0 5px; padding: 10px 20px; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<canvas id="danceCanvas" width="800" height="600"></canvas>
+
+<!-- Видео фоны (скрыты) -->
+<video id="bgVideo1" src="clip1.mp4" autoplay loop muted style="display:none"></video>
+<video id="bgVideo2" src="clip2.mp4" autoplay loop muted style="display:none"></video>
+
+<!-- Кнопки управления -->
+<div>
+    <button id="playBtn">Play</button>
+    <button id="pauseBtn">Pause</button>
+    <button id="changeBgBtn">Сменить фон</button>
+</div>
+
+<script>
+    // --- Инициализация ---
+    const canvas = document.getElementById('danceCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Видео фоны
+    const videos = [
+        document.getElementById('bgVideo1'),
+        document.getElementById('bgVideo2')
+    ];
+    let currentVideo = 0;
+
+    // Спрайт DPR IAN
+    const sprite = new Image();
+    sprite.src = 'dpr_ian_spritesheet.png'; // путь к спрайту
+
+    const SPRITE_WIDTH = 200;
+    const SPRITE_HEIGHT = 300;
+    const SPRITE_FRAMES = 8;
+    let currentFrame = 0;
+
+    // Плавное движение
+    let xPos = canvas.width / 2 - SPRITE_WIDTH / 2;
+    let yPos = canvas.height / 2 - SPRITE_HEIGHT / 2;
+    let xSpeed = 2;
+    let ySpeed = 1.5;
+
+    // Анимация
+    let isPlaying = true;
+
+    // --- Функция анимации ---
+    function draw() {
+        if (!isPlaying) return;
+
+        // Размытый фон
+        ctx.filter = 'blur(2px)';
+        ctx.drawImage(videos[currentVideo], 0, 0, canvas.width, canvas.height);
+        ctx.filter = 'none';
+
+        // Обновление позиции персонажа
+        xPos += xSpeed;
+        yPos += ySpeed;
+
+        // Отскакиваем от границ
+        if (xPos + SPRITE_WIDTH > canvas.width || xPos < 0) xSpeed *= -1;
+        if (yPos + SPRITE_HEIGHT > canvas.height || yPos < 0) ySpeed *= -1;
+
+        // Рисуем спрайт
+        ctx.drawImage(
+            sprite,
+            currentFrame * SPRITE_WIDTH, 0,
+            SPRITE_WIDTH, SPRITE_HEIGHT,
+            xPos, yPos,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+        );
+
+        // Следующий кадр спрайта
+        currentFrame = (currentFrame + 1) % SPRITE_FRAMES;
+
+        requestAnimationFrame(draw);
+    }
+
+    // --- Кнопки управления ---
+    document.getElementById('playBtn').onclick = () => {
+        if (!isPlaying) {
+            isPlaying = true;
+            draw();
+        }
+    };
+    document.getElementById('pauseBtn').onclick = () => { isPlaying = false; };
+    document.getElementById('changeBgBtn').onclick = () => {
+        currentVideo = (currentVideo + 1) % videos.length;
+    };
+
+    // --- Запуск ---
+    sprite.onload = () => { draw(); };
+</script>
+
+</body>
+</html>
